@@ -7,3 +7,6 @@ console.log('--@lib/b--', require('@lib/b').id())
 console.log('--@lib/b:alias--', require('@lib/b').test())
 console.log('--@lib/b_alias--', require('@lib/b_alias').id())
 console.log('--@lib/b_alias--', require('@lib/b_alias').test())
+
+console.log('--sample-string--', require('@lib/b').readSampleString())
+console.log('--is-odd--', require('@lib/b').readIsOdd())

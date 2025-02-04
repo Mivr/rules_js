@@ -8,4 +8,6 @@ module.exports = {
             packageJson.version ? packageJson.version : '0.0.0'
         }`,
     test: () => [f.id(), require('alias-1/package.json').version].join('\n'),
+    readIsOdd: () => require('is-odd'),
+    readSampleString: () => 'Sample string'
 }
