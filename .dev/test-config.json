@@ -1,0 +1,106 @@
+{
+  "bazel_versions": [
+    {
+      "major": 6,
+      "version": "6.5.0",
+      "bzlmod_modes": [0],
+      "skip_root_tests": true,
+      "skip_docs_tests": true
+    },
+    {
+      "major": 7,
+      "version": "7.6.1",
+      "bzlmod_modes": [0, 1],
+      "default": true
+    },
+    {
+      "major": 8,
+      "version": "8.1.1",
+      "bzlmod_modes": [0, 1]
+    }
+  ],
+  "exclusions": [
+    {
+      "test": "bzlmod",
+      "bzlmod": 0,
+      "reason": "bzlmod test requires bzlmod to be enabled"
+    },
+    {
+      "test": "npm_translate_lock_replace_packages",
+      "bazel_major": 6,
+      "reason": "uses Bazel 7+ features, not compatible with Bazel 6"
+    },
+    {
+      "test": "gyp_no_install_script",
+      "bazel_major": 6,
+      "reason": "broken on Bazel 6.5.0, not worth investigating"
+    },
+    {
+      "test": "patch_from_repo",
+      "bazel_major": 6,
+      "reason": "broken on Bazel 6.5.0, not worth investigating"
+    },
+    {
+      "test": "js_run_devserver",
+      "bazel_major": 6,
+      "reason": "broken on Bazel 6.5.0, not worth investigating"
+    },
+    {
+      "test": "js_image_docker",
+      "bazel_major": 6,
+      "reason": "rules_docker compatibility issues with Bazel 6"
+    },
+    {
+      "test": "npm_translate_lock_git+ssh",
+      "reason": "requires SSH key authentication not available locally"
+    },
+    {
+      "test": "git_dep_metadata",
+      "reason": "requires SSH key authentication not available locally"
+    }
+  ],
+  "e2e_tests": [
+    "bzlmod",
+    "gyp_no_install_script",
+    "js_image_docker",
+    "js_image_oci",
+    "js_run_devserver",
+    "npm_link_package",
+    "npm_link_package-esm",
+    "npm_link_package-rerooted",
+    "npm_translate_lock",
+    "npm_translate_lock_auth",
+    "npm_translate_lock_disable_hooks",
+    "npm_translate_lock_empty",
+    "npm_translate_lock_exclude_package_contents",
+    "npm_translate_lock_git+ssh",
+    "npm_translate_lock_multi",
+    "npm_translate_lock_partial_clone",
+    "npm_translate_lock_replace_packages",
+    "npm_translate_lock_subdir_patch",
+    "npm_translate_package_lock",
+    "npm_translate_yarn_lock",
+    "package_json_module",
+    "patch_from_repo",
+    "pnpm_lockfiles",
+    "pnpm_repo_install",
+    "pnpm_workspace",
+    "pnpm_workspace_deps",
+    "pnpm_workspace_rerooted",
+    "repo_mapping",
+    "rules_foo",
+    "runfiles",
+    "stamped_package_json",
+    "update_pnpm_lock",
+    "update_pnpm_lock_with_import",
+    "vendored_node",
+    "vendored_tarfile",
+    "verify_patches",
+    "webpack_devserver",
+    "webpack_devserver_esm",
+    "worker",
+    "workspace"
+  ],
+  "test_timeout_minutes": 10,
+  "default_parallel_jobs": 8
+}
