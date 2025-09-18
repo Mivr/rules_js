@@ -1,62 +1,93 @@
 graph TD
-    %% Input Sources
-    A[Package Manager Lock Files] --> A1[pnpm-lock.yaml]
-    A[Package Manager Lock Files] --> A2[package-lock.json]
-    A[Package Manager Lock Files] --> A3[yarn.lock]
+    %% Input Sources with Detailed Explanations
+    A[📦 Package Manager Lock Files<br/>WHY: Lock files contain exact<br/>dependency versions & resolution info<br/>needed for reproducible builds] 
     
-    A1 --> B[npm_translate_lock Rule]
-    A2 --> B1[pnpm import] 
-    A3 --> B1[pnpm import]
-    B1 --> A1
+    A --> A1["🔒 pnpm-lock.yaml<br/>PREFERRED: Most detailed format<br/>Contains resolution strategy,<br/>integrity hashes, peer deps"]
+    A --> A2["📋 package-lock.json<br/>NPM FORMAT: Standard npm format<br/>Needs conversion to pnpm format<br/>for consistent processing"]
+    A --> A3["🧶 yarn.lock<br/>YARN FORMAT: Yarn's lock format<br/>Also needs conversion to pnpm<br/>for unified handling"]
     
-    %% Configuration Inputs
-    C[Configuration] --> C1[package.json]
-    C[Configuration] --> C2[.npmrc]
-    C[Configuration] --> C3[patches/]
-    C[Configuration] --> C4[lifecycle_hooks]
+    %% Lock File Conversion Process
+    A2 --> B1["🔄 pnpm import<br/>WHY: Converts npm/yarn locks<br/>to pnpm format while preserving<br/>exact same versions"]
+    A3 --> B1
+    B1 --> B1_OUT["✅ Normalized pnpm-lock.yaml<br/>RESULT: All formats now unified<br/>into pnpm's precise format"]
+    B1_OUT --> A1
     
+    %% Configuration Inputs with Explanations
+    C["⚙️ Configuration Files<br/>WHY: Customize dependency handling,<br/>authentication, patches, and<br/>build-time behaviors"]
+    
+    C --> C1["📄 package.json<br/>PURPOSE: Defines root dependencies,<br/>workspace structure, and<br/>project metadata"]
+    C --> C2["🔐 .npmrc<br/>PURPOSE: NPM registry config,<br/>authentication tokens,<br/>proxy settings"]
+    C --> C3["🩹 patches/<br/>PURPOSE: Fix third-party packages<br/>without waiting for upstream<br/>or forking repositories"]
+    C --> C4["🔄 lifecycle_hooks<br/>PURPOSE: Run package install scripts<br/>like node-gyp builds or<br/>custom setup commands"]
+    
+    %% Main Processing Entry Point
+    A1 --> B["🎯 npm_translate_lock Rule<br/>BAZEL REPOSITORY RULE<br/>WHY: Entry point that orchestrates<br/>the entire translation process"]
     C1 --> B
     C2 --> B
     C3 --> B
     C4 --> B
     
-    %% Main Processing Pipeline
-    B --> D[Initialize State]
-    D --> E{Lock File Exists?}
-    E -->|No| F[Bootstrap: pnpm import]
-    F --> G[Generate pnpm-lock.yaml]
-    G --> H[Parse Lock File]
-    E -->|Yes| H[Parse Lock File]
+    %% State Initialization
+    B --> D["🚀 Initialize State<br/>SETUP PHASE<br/>WHY: Create internal data structures,<br/>validate configuration,<br/>prepare processing context"]
     
-    H --> I[Extract Importers & Packages]
-    I --> J[Translate to Transitive Closure]
+    %% Lock File Existence Check
+    D --> E{"❓ pnpm-lock.yaml Exists?<br/>DECISION POINT<br/>WHY: Determine if we need<br/>to bootstrap or can proceed<br/>with existing lock file"}
     
-    %% Transitive Closure Details
-    J --> J1[Gather Dependencies]
-    J1 --> J2[Resolve Circular Dependencies]
-    J2 --> J3[Apply Filters: prod/dev/optional]
-    J3 --> J4[Build Dependency Graph]
+    %% Bootstrap Path
+    E -->|"❌ No Lock File"| F["🔧 Bootstrap: pnpm import<br/>CONVERSION PROCESS<br/>WHY: Convert existing npm/yarn<br/>lock to pnpm format OR<br/>create new lock from package.json"]
     
-    %% Repository Generation
-    J4 --> K[Generate Repository Files]
-    K --> K1[Create npm_import rules]
-    K --> K2[Generate repositories.bzl]
-    K --> K3[Generate defs.bzl]
-    K --> K4[Create BUILD files]
+    F --> G["📝 Generate pnpm-lock.yaml<br/>LOCK FILE CREATION<br/>WHY: Create the canonical lock file<br/>that will be used for all<br/>subsequent processing"]
     
-    %% Output Files
-    K1 --> L1[External Repositories]
-    K2 --> L2[repositories.bzl<br/>- npm_repositories macro<br/>- Individual npm_import calls]
-    K3 --> L3[defs.bzl<br/>- npm_link_all_packages<br/>- Helper macros]
-    K4 --> L4[BUILD files<br/>- Package targets<br/>- Visibility rules]
+    G --> H["📖 Parse Lock File<br/>YAML PARSING<br/>WHY: Extract structured data<br/>about packages, versions,<br/>and dependency relationships"]
     
-    %% Additional Processing
-    K --> M[Apply Patches]
-    K --> N[Run Lifecycle Hooks]
-    K --> O[Handle Custom Post-installs]
+    %% Direct Path
+    E -->|"✅ Lock File Exists"| H
     
-    %% Final Outputs
-    L1 --> P[Bazel External Repositories]
+    %% Data Extraction Phase
+    H --> I["🔍 Extract Importers & Packages<br/>DATA EXTRACTION<br/>WHY: Separate workspace projects<br/>(importers) from third-party<br/>packages for different handling"]
+    
+    %% Core Translation Process
+    I --> J["🔄 Translate to Transitive Closure<br/>DEPENDENCY RESOLUTION<br/>WHY: Build complete dependency graph<br/>including all indirect dependencies<br/>needed for hermetic builds"]
+    
+    %% Detailed Transitive Closure Steps
+    J --> J1["📊 Gather Dependencies<br/>COLLECTION PHASE<br/>WHY: Collect all direct dependencies<br/>from each package, including<br/>prod, dev, optional, and peer deps"]
+    
+    J1 --> J2["🔗 Resolve Circular Dependencies<br/>CYCLE BREAKING<br/>WHY: NPM ecosystem has circular deps<br/>(A depends on B, B depends on A)<br/>Must break cycles for Bazel's DAG"]
+    
+    J2 --> J3["🎛️ Apply Filters: prod/dev/optional<br/>DEPENDENCY FILTERING<br/>WHY: Users may want only production<br/>deps, or exclude optional deps<br/>to reduce build size/complexity"]
+    
+    J3 --> J4["🕸️ Build Dependency Graph<br/>GRAPH CONSTRUCTION<br/>WHY: Create final dependency graph<br/>with resolved versions and<br/>transitive closure information"]
+    
+    %% Repository Generation Phase
+    J4 --> K["🏗️ Generate Repository Files<br/>BAZEL INTEGRATION<br/>WHY: Convert npm dependency graph<br/>into Bazel external repositories<br/>and build targets"]
+    
+    %% Detailed Repository Generation
+    K --> K1["📦 Create npm_import rules<br/>INDIVIDUAL PACKAGES<br/>WHY: Each npm package becomes<br/>a Bazel external repository<br/>with download & build rules"]
+    
+    K --> K2["📜 Generate repositories.bzl<br/>MACRO GENERATION<br/>WHY: Create loadable macro that<br/>users call to instantiate all<br/>npm_import repositories"]
+    
+    K --> K3["🛠️ Generate defs.bzl<br/>HELPER FUNCTIONS<br/>WHY: Provide convenience functions<br/>like npm_link_all_packages<br/>for easier dependency consumption"]
+    
+    K --> K4["🏢 Create BUILD files<br/>BUILD TARGETS<br/>WHY: Create Bazel targets for<br/>packages in package.json<br/>so users can reference by name"]
+    
+    %% Additional Processing Steps
+    K --> M["🩹 Apply Patches<br/>PACKAGE MODIFICATION<br/>WHY: Fix bugs in third-party packages<br/>or customize behavior without<br/>forking the entire package"]
+    
+    K --> N["⚡ Run Lifecycle Hooks<br/>INSTALL SCRIPTS<br/>WHY: Many packages need post-install<br/>steps like compiling native code<br/>or generating build artifacts"]
+    
+    K --> O["🔧 Handle Custom Post-installs<br/>CUSTOM COMMANDS<br/>WHY: User-defined commands for<br/>packages that need special<br/>setup or configuration"]
+    
+    %% Output Generation
+    K1 --> L1["🗂️ External Repositories<br/>@npm_package_name__version<br/>RESULT: Individual Bazel repos<br/>for each npm package"]
+    
+    K2 --> L2["📋 repositories.bzl<br/>npm_repositories() macro<br/>RESULT: Single function call<br/>to set up all dependencies"]
+    
+    K3 --> L3["🔧 defs.bzl<br/>npm_link_all_packages()<br/>RESULT: Helper functions for<br/>linking deps to targets"]
+    
+    K4 --> L4["🏗️ BUILD files<br/>Package targets by name<br/>RESULT: Direct reference to<br/>packages without versions"]
+    
+    %% Final Integration
+    L1 --> P["✅ Bazel External Repositories<br/>HERMETIC DEPENDENCIES<br/>RESULT: All npm packages are now<br/>Bazel external repositories with<br/>proper caching and hermeticity"]
     L2 --> P
     L3 --> P
     L4 --> P
@@ -64,16 +95,22 @@ graph TD
     N --> P
     O --> P
     
-    P --> Q[Ready for Build]
-    Q --> R[js_library, js_binary, etc.]
+    %% Build Integration
+    P --> Q["🎯 Ready for Build<br/>BUILD INTEGRATION<br/>RESULT: npm packages can now<br/>be used in js_library, js_binary<br/>and other Bazel rules"]
     
-    %% Styling
-    classDef inputFile fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef process fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef output fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
-    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    Q --> R["🚀 js_library, js_binary, etc.<br/>BUILD TARGETS<br/>RESULT: Users can build JavaScript<br/>applications with full dependency<br/>management and caching"]
+    
+    %% Enhanced Styling
+    classDef inputFile fill:#e1f5fe,stroke:#01579b,stroke-width:3px,color:#000
+    classDef process fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef output fill:#e8f5e8,stroke:#1b5e20,stroke-width:3px,color:#000
+    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:3px,color:#000
+    classDef bootstrap fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+    classDef critical fill:#ffebee,stroke:#b71c1c,stroke-width:3px,color:#000
     
     class A1,A2,A3,C1,C2,C3,C4 inputFile
-    class B,D,F,G,H,I,J,J1,J2,J3,J4,K,K1,K2,K3,K4,M,N,O process
+    class B,D,H,I,J,J1,J2,J3,J4,K,K1,K2,K3,K4,M,N,O process
     class L1,L2,L3,L4,P,Q,R output
     class E decision
+    class F,G,B1,B1_OUT bootstrap
+    class J2 critical
