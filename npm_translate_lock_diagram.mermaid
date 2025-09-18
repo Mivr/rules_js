@@ -1,0 +1,79 @@
+graph TD
+    %% Input Sources
+    A[Package Manager Lock Files] --> A1[pnpm-lock.yaml]
+    A[Package Manager Lock Files] --> A2[package-lock.json]
+    A[Package Manager Lock Files] --> A3[yarn.lock]
+    
+    A1 --> B[npm_translate_lock Rule]
+    A2 --> B1[pnpm import] 
+    A3 --> B1[pnpm import]
+    B1 --> A1
+    
+    %% Configuration Inputs
+    C[Configuration] --> C1[package.json]
+    C[Configuration] --> C2[.npmrc]
+    C[Configuration] --> C3[patches/]
+    C[Configuration] --> C4[lifecycle_hooks]
+    
+    C1 --> B
+    C2 --> B
+    C3 --> B
+    C4 --> B
+    
+    %% Main Processing Pipeline
+    B --> D[Initialize State]
+    D --> E{Lock File Exists?}
+    E -->|No| F[Bootstrap: pnpm import]
+    F --> G[Generate pnpm-lock.yaml]
+    G --> H[Parse Lock File]
+    E -->|Yes| H[Parse Lock File]
+    
+    H --> I[Extract Importers & Packages]
+    I --> J[Translate to Transitive Closure]
+    
+    %% Transitive Closure Details
+    J --> J1[Gather Dependencies]
+    J1 --> J2[Resolve Circular Dependencies]
+    J2 --> J3[Apply Filters: prod/dev/optional]
+    J3 --> J4[Build Dependency Graph]
+    
+    %% Repository Generation
+    J4 --> K[Generate Repository Files]
+    K --> K1[Create npm_import rules]
+    K --> K2[Generate repositories.bzl]
+    K --> K3[Generate defs.bzl]
+    K --> K4[Create BUILD files]
+    
+    %% Output Files
+    K1 --> L1[External Repositories]
+    K2 --> L2[repositories.bzl<br/>- npm_repositories macro<br/>- Individual npm_import calls]
+    K3 --> L3[defs.bzl<br/>- npm_link_all_packages<br/>- Helper macros]
+    K4 --> L4[BUILD files<br/>- Package targets<br/>- Visibility rules]
+    
+    %% Additional Processing
+    K --> M[Apply Patches]
+    K --> N[Run Lifecycle Hooks]
+    K --> O[Handle Custom Post-installs]
+    
+    %% Final Outputs
+    L1 --> P[Bazel External Repositories]
+    L2 --> P
+    L3 --> P
+    L4 --> P
+    M --> P
+    N --> P
+    O --> P
+    
+    P --> Q[Ready for Build]
+    Q --> R[js_library, js_binary, etc.]
+    
+    %% Styling
+    classDef inputFile fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef process fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef output fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    
+    class A1,A2,A3,C1,C2,C3,C4 inputFile
+    class B,D,F,G,H,I,J,J1,J2,J3,J4,K,K1,K2,K3,K4,M,N,O process
+    class L1,L2,L3,L4,P,Q,R output
+    class E decision
